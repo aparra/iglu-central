@@ -9,10 +9,9 @@
 	},
 	"type": "object",
 	"properties": {
-		"env": {
-			"description": "Target environment of the configuration",
-			"type": "string",
-			"enum": ["test", "mini", "prod"]
+		"description": {
+			"description": "Human-readable & short description the configuration",
+			"type": "string"
 		},
 		"input": {
 			"description": "Path to input schemas",
@@ -20,19 +19,25 @@
 			"format": "uri"
 		},
 		"lint": {
-			"description": "Schema for lint command",
+			"description": "Configuration for lint command",
 			"type": "object",
 			"properties": {
 				"skipWarnings": {
 					"description": "Don't output messages with log level less than ERROR",
-					"type": "boolean",
+					"type": [
+						"boolean",
+						"null"
+					],
 					"default": false
 				},
 				"includedChecks": {
 					"description": "Lint using provided linters",
-					"type": ["array", "null"],
-					"items" : {
-						"type" : "string",
+					"type": [
+						"array",
+						"null"
+					],
+					"items": {
+						"type": "string",
 						"enum": [
 							"rootObject",
 							"unknownFormats",
@@ -42,85 +47,135 @@
 							"description"
 						]
 					}
-				}	
+				}
 			},
-			"required": ["includedChecks"]
+			"required": [
+				"skipWarnings",
+				"includedChecks"
+			]
 		},
 		"generate": {
-			"description": "Schema for static generate command",
+			"description": "Configuration for static generate command",
 			"type": "object",
 			"properties": {
 				"output": {
 					"description": "Directory to put generated data",
-					"type": "string",
+					"type": [
+						"string",
+						"null"
+					],
 					"default": "."
 				},
 				"dbschema": {
 					"description": "Redshift database schema (e.g. 'atomic')",
-					"type": "string",
-            		"minLength": 1,
-            		"maxLength": 128,
+					"type": [
+						"string",
+						"null"
+					],
+					"minLength": 1,
+					"maxLength": 128,
 					"default": "atomic"
 				},
 				"owner": {
 					"description": "Redshift table owner",
-					"type": "string",
+					"type": [
+						"string",
+						"null"
+					],
 					"maxLength": 128
 				},
 				"db": {
 					"description": "DB to which we need to generate DDL",
-					"type": "string",
+					"type": [
+						"string",
+						"null"
+					],
 					"minLength": 1,
 					"maxLength": 64,
 					"default": "redshift"
 				},
 				"varcharSize": {
 					"description": "Redshift varchar size",
-					"type": "integer",
+					"type": [
+						"integer",
+						"null"
+					],
 					"minimum": 1,
 					"maximum": 65535,
 					"default": 4096
 				},
 				"withJsonPaths": {
 					"description": "Produce JSON Paths files with DDL or not",
-					"type": "boolean",
+					"type": [
+						"boolean",
+						"null"
+					],
 					"default": true
 				},
 				"rawMode": {
 					"description": "Produce raw DDL with Snowplow-specific data or not",
-					"type": "boolean",
+					"type": [
+						"boolean",
+						"null"
+					],
 					"default": false
 				},
 				"splitProduct": {
 					"description": "Split product types (like [string,integer]) into separate columns or not",
-					"type": "boolean",
+					"type": [
+						"boolean",
+						"null"
+					],
 					"default": false
 				},
 				"noHeader": {
 					"description": "Place header comments into output DDL or not",
-					"type": "boolean",
+					"type": [
+						"boolean",
+						"null"
+					],
 					"default": false
 				},
 				"force": {
 					"description": "Force overwrite existing manually-edited files",
-					"type": "boolean",
+					"type": [
+						"boolean",
+						"null"
+					],
 					"default": false
 				}
-			}
+			},
+			"required": [
+				"output",
+				"dbschema",
+				"owner",
+				"db",
+				"varcharSize",
+				"withJsonPaths",
+				"rawMode",
+				"splitProduct",
+				"noHeader",
+				"force"
+			]
 		},
 		"actions": {
-			"description": "Schema for s3cp and push commands",
-			"type": ["array", "null"],
+			"description": "Configuration for s3cp and push commands",
+			"type": [
+				"array",
+				"null"
+			],
 			"items": {
 				"type": "object",
-				"anyOf":[
+				"anyOf": [
 					{
-						"description": "Schema for push command",
+						"description": "Configuration for static push command",
 						"type": "object",
 						"properties": {
 							"action": {
 								"type": "string",
-								"enum": ["push"]
+								"enum": [
+									"push"
+								]
 							},
 							"registry": {
 								"type": "string",
@@ -131,20 +186,32 @@
 								"default": false
 							},
 							"apikey": {
-								"oneOf":[
-									{ "format": "uuid" },
-									{ "pattern": "^\\$[A-Z0-9-_]+" }
+								"oneOf": [
+									{
+										"format": "uuid"
+									},
+									{
+										"pattern": "^\\$[A-Z0-9-_]+"
+									}
 								]
 							}
-						}
+						},
+						"required": [
+							"action",
+							"registry",
+							"isPublic",
+							"apikey"
+						]
 					},
 					{
-						"description": "Schema for s3cp command",
+						"description": "Configuration for static s3cp command",
 						"type": "object",
 						"properties": {
 							"action": {
 								"type": "string",
-								"enum": ["s3cp"]
+								"enum": [
+									"s3cp"
+								]
 							},
 							"uploadFormat": {
 								"type": "string",
@@ -160,42 +227,47 @@
 							"accessKeyId": {
 								"description": "AWS Access Key Id",
 								"type": "string",
-								"pattern": "^[A-Z0-9-_]+"
+								"pattern": "^\\$[A-Z0-9-_]+"
 							},
 							"secretAccessKey": {
 								"description": "AWS Secret Access Key",
 								"type": "string",
-								"pattern": "^[A-Z0-9-_]+"
+								"pattern": "^\\$[A-Z0-9-_]+"
 							},
 							"profile": {
 								"description": "AWS profile",
-								"type": "string"
+								"type": [
+									"string",
+									"null"
+								]
 							},
 							"region": {
 								"description": "AWS region",
-								"type": "string",
-								"enum": [
-									"us-east-2",
-									"us-west-1",
-									"us-west-2",
-									"ca-central-1",
-									"eu-west-1",
-									"eu-central-1",
-									"eu-west-2",
-									"ap-southeast-1",
-									"ap-southeast-2",
-									"ap-northeast-2",
-									"ap-northeast-1",
-									"ap-south-1",
-									"sa-east-1"
-								]
+								"type": [
+									"string",
+									"null"
+								],
+								"default": "us-west-2"
 							}
-						}
+						},
+						"required": [
+							"action",
+							"uploadFormat",
+							"bucketPath",
+							"accessKeyId",
+							"secretAccessKey",
+							"profile",
+							"region"
+						]
 					}
 				]
 			}
 		}
 	},
-	"required": ["input", "lint", "generate"],
+	"required": [
+		"input",
+		"lint",
+		"generate"
+	],
 	"additionalProperties": false
 }
