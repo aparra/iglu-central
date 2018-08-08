@@ -1,0 +1,201 @@
+{
+	"$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#",
+	"description": "Schema for Igluctl's configuration",
+	"self": {
+		"vendor": "com.snowplowanalytics.iglu",
+		"name": "igluctl_config",
+		"format": "jsonschema",
+		"version": "1-0-0"
+	},
+	"type": "object",
+	"properties": {
+		"env": {
+			"description": "Target environment of the configuration",
+			"type": "string",
+			"enum": ["test", "mini", "prod"]
+		},
+		"input": {
+			"description": "Path to input schemas",
+			"type": "string",
+			"format": "uri"
+		},
+		"lint": {
+			"description": "Schema for lint command",
+			"type": "object",
+			"properties": {
+				"skipWarnings": {
+					"description": "Don't output messages with log level less than ERROR",
+					"type": "boolean",
+					"default": false
+				},
+				"includedChecks": {
+					"description": "Lint using provided linters",
+					"type": ["array", "null"],
+					"items" : {
+						"type" : "string",
+						"enum": [
+							"rootObject",
+							"unknownFormats",
+							"numericMinMax",
+							"stringLength",
+							"optionalNull",
+							"description"
+						]
+					}
+				}	
+			},
+			"required": ["includedChecks"]
+		},
+		"generate": {
+			"description": "Schema for static generate command",
+			"type": "object",
+			"properties": {
+				"output": {
+					"description": "Directory to put generated data",
+					"type": "string",
+					"default": "."
+				},
+				"dbschema": {
+					"description": "Redshift database schema (e.g. 'atomic')",
+					"type": "string",
+            		"minLength": 1,
+            		"maxLength": 128,
+					"default": "atomic"
+				},
+				"owner": {
+					"description": "Redshift table owner",
+					"type": "string",
+					"maxLength": 128
+				},
+				"db": {
+					"description": "DB to which we need to generate DDL",
+					"type": "string",
+					"minLength": 1,
+					"maxLength": 64,
+					"default": "redshift"
+				},
+				"varcharSize": {
+					"description": "Redshift varchar size",
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 65535,
+					"default": 4096
+				},
+				"withJsonPaths": {
+					"description": "Produce JSON Paths files with DDL or not",
+					"type": "boolean",
+					"default": true
+				},
+				"rawMode": {
+					"description": "Produce raw DDL with Snowplow-specific data or not",
+					"type": "boolean",
+					"default": false
+				},
+				"splitProduct": {
+					"description": "Split product types (like [string,integer]) into separate columns or not",
+					"type": "boolean",
+					"default": false
+				},
+				"noHeader": {
+					"description": "Place header comments into output DDL or not",
+					"type": "boolean",
+					"default": false
+				},
+				"force": {
+					"description": "Force overwrite existing manually-edited files",
+					"type": "boolean",
+					"default": false
+				}
+			}
+		},
+		"actions": {
+			"description": "Schema for s3cp and push commands",
+			"type": ["array", "null"],
+			"items": {
+				"type": "object",
+				"anyOf":[
+					{
+						"description": "Schema for push command",
+						"type": "object",
+						"properties": {
+							"action": {
+								"type": "string",
+								"enum": ["push"]
+							},
+							"registry": {
+								"type": "string",
+								"format": "uri"
+							},
+							"isPublic": {
+								"type": "boolean",
+								"default": false
+							},
+							"apikey": {
+								"oneOf":[
+									{ "format": "uuid" },
+									{ "pattern": "^\\$[A-Z0-9-_]+" }
+								]
+							}
+						}
+					},
+					{
+						"description": "Schema for s3cp command",
+						"type": "object",
+						"properties": {
+							"action": {
+								"type": "string",
+								"enum": ["s3cp"]
+							},
+							"uploadFormat": {
+								"type": "string",
+								"enum": [
+									"jsonpath",
+									"jsonschema"
+								]
+							},
+							"bucketPath": {
+								"type": "string",
+								"pattern": "^s3://"
+							},
+							"accessKeyId": {
+								"description": "AWS Access Key Id",
+								"type": "string",
+								"pattern": "^[A-Z0-9-_]+"
+							},
+							"secretAccessKey": {
+								"description": "AWS Secret Access Key",
+								"type": "string",
+								"pattern": "^[A-Z0-9-_]+"
+							},
+							"profile": {
+								"description": "AWS profile",
+								"type": "string"
+							},
+							"region": {
+								"description": "AWS region",
+								"type": "string",
+								"enum": [
+									"us-east-2",
+									"us-west-1",
+									"us-west-2",
+									"ca-central-1",
+									"eu-west-1",
+									"eu-central-1",
+									"eu-west-2",
+									"ap-southeast-1",
+									"ap-southeast-2",
+									"ap-northeast-2",
+									"ap-northeast-1",
+									"ap-south-1",
+									"sa-east-1"
+								]
+							}
+						}
+					}
+				]
+			}
+		}
+	},
+	"required": ["input", "lint", "generate"],
+	"additionalProperties": false
+}
