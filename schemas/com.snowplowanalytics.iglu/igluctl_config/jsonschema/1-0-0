@@ -254,8 +254,6 @@
 							"action",
 							"uploadFormat",
 							"bucketPath",
-							"accessKeyId",
-							"secretAccessKey",
 							"profile",
 							"region"
 						]
