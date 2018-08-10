@@ -267,7 +267,8 @@
 	"required": [
 		"input",
 		"lint",
-		"generate"
+		"generate",
+		"actions"
 	],
 	"additionalProperties": false
 }
